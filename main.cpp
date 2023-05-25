@@ -3,20 +3,52 @@
 #include <ctime>
 #include <vector>
 #include <string>
-#include <Windows.h>
+
+
+#ifdef _WIN32
+	#include <Windows.h>
+#endif
+#ifdef __linux__
+	#include <ncurses.h>
+#endif
 
 using namespace std;
 
+
+#ifdef _WIN32
 #define MAPH 29
 #define MAPW 60
+#endif
+
 #define ALIVE 1
 #define DEAD 0
 #define MAXFRAME 30
 
+#ifdef _WIN32
 void gotoxy(int y, int x) {
 	COORD pos = { y,x };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
+#endif
+#ifdef __linux__
+void gotoxy(int y, int x){
+	move(y, x);
+}
+#endif
+
+#ifdef _WIN32
+#define out cout
+#endif
+
+#ifdef __linux__
+struct ostr{
+};
+void operator<<(struct ostr o, string t){
+	printw(t.c_str());
+}
+struct ostr out;
+#endif
+
 
 class Pos {
 public:
@@ -53,6 +85,13 @@ int pattern[2][9] = {
 
 
 int main() {
+
+	#ifdef __linux__
+		initscr();
+		int MAPH, MAPW;
+		getmaxyx(stdscr,MAPH,MAPW);
+	#endif
+
 	vector<vector<int>> map(MAPH, vector<int>(MAPW, 0));
 	/*int N;
 	cin >> N;
@@ -68,17 +107,17 @@ int main() {
 	map[14][30] = ALIVE;
 	map[14][31] = ALIVE;
 
-	while (true) {
 
+	while (true) {
 		//buffer image
 		vector<string> v(MAPH);
 		for (int i = 0; i < MAPH; i++) {
 			for (int j = 0; j < MAPW; j++) {
 				if (map[i][j] == ALIVE) {
-					v[i] += "бс";
+					v[i] += "##";
 				}
 				else {
-					v[i] += "бр";
+					v[i] += "  ";
 				}
 			}
 		}
@@ -86,9 +125,9 @@ int main() {
 		//draw image
 		for (int i = 0; i < MAPH - 1; i++) {
 			gotoxy(0, i);
-			cout << v[i];
+			out << v[i];
 		}
-		cout << v[MAPH - 1];
+		out << v[MAPH - 1];
 
 		vector<vector<int>> mapcpy = map;
 		//update part
@@ -114,4 +153,8 @@ int main() {
 				break;
 		}
 	}
+#ifdef __linux__
+	endwin();
+#endif
+	return 0;
 }
